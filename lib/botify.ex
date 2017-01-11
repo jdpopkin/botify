@@ -14,7 +14,8 @@ defmodule Botify do
       supervisor(Botify.Endpoint, []),
       # Start your own worker by calling: Botify.Worker.start_link(arg1, arg2, arg3)
       # worker(Botify.Worker, [arg1, arg2, arg3]),
-      worker(Slack.Bot, [Botify.SlackRtm, [], System.get_env("SLACK_TOKEN")], restart: :temporary)
+      worker(Slack.Bot, [Botify.SlackRtm, [], System.get_env("SLACK_TOKEN")], restart: :temporary),
+      worker(Botify.SelfPing, [])
     ]
 
     # See http://elixir-lang.org/docs/stable/elixir/Supervisor.html
