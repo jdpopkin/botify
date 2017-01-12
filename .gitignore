@@ -4,6 +4,10 @@
 /deps
 /*.ez
 
+# Local database info
+/data
+logfile
+
 # Generated on crash by the VM
 erl_crash.dump
 
