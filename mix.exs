@@ -19,7 +19,7 @@ defmodule Botify.Mixfile do
   def application do
     [mod: {Botify, []},
      applications: [:phoenix, :phoenix_pubsub, :phoenix_html, :cowboy, :logger, :gettext,
-                    :phoenix_ecto, :postgrex, :slack, :httpoison]]
+                    :phoenix_ecto, :postgrex, :slack, :httpoison, :spotify_ex]]
   end
 
   # Specifies which paths to compile per environment.
@@ -39,7 +39,8 @@ defmodule Botify.Mixfile do
      {:gettext, "~> 0.11"},
      {:cowboy, "~> 1.0"},
      {:slack, "~> 0.9.2"},
-     {:httpoison, "~> 0.9.0"}]
+     {:httpoison, "~> 0.9.0"},
+     {:spotify_ex, "~> 2.0.4"}]
   end
 
   # Aliases are shortcuts or tasks specific to the current project.

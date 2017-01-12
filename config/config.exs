@@ -22,6 +22,13 @@ config :logger, :console,
   format: "$time $metadata[$level] $message\n",
   metadata: [:request_id]
 
+# Configures Spotify
+config :spotify_ex, scopes: ["playlist-modify-public"],
+                    callback_url: System.get_env("APP_URL") <> "/callback",
+                    client_id: System.get_env("SPOTIFY_ID"),
+                    secret_key: System.get_env("SPOTIFY_SECRET")
+
+
 # Import environment specific config. This must remain at the bottom
 # of this file so it overrides the configuration defined above.
 import_config "#{Mix.env}.exs"
