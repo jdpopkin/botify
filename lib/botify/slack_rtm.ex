@@ -52,7 +52,10 @@ defmodule Botify.SlackRtm do
     case response do
       %{"error" => %{"status" => 401}} ->
         case Spotify.Authentication.refresh(credentials) do
-          {:ok, new_credentials} -> new_credentials
+          {:ok, new_credentials} ->
+            # Reuse old refresh token because a Spotify refresh response will
+            # not contain the refresh token
+            Spotify.Credentials.new(new_credentials.access_token, credentials.refresh_token)
           _ ->
             IO.puts("Refresh failed! Reauthentication required.")
             credentials
