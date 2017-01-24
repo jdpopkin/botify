@@ -18,26 +18,78 @@ defmodule Botify.SlackRtm do
   def handle_event(_, _, state), do: {:ok, state}
 
   defp handle_message(message = %{text: _}, _slack) do
-    is_track_link = Regex.match?(~r'https://(open|play).spotify.com/track/', message.text)
-
-    if is_track_link do
-      update_spotify(message)
-
-      options = %{channel: message.channel, timestamp: message.ts, token: System.get_env("SLACK_TOKEN")}
-      Slack.Web.Reactions.add('musical_note', options)
-      nil
+    cond do
+      Regex.match?(~r'https://(open|play).spotify.com/track/', message.text) ->
+        handle_track_link(message)
+      Regex.match?(~r'https://(open|play).spotify.com/album/', message.text) ->
+        handle_album_link(message)
+      true -> nil
     end
   end
   defp handle_message(_, _) do
     nil
   end
 
-  # TODO Extract a new module for this stuff
-  defp update_spotify(message) do
-    db_credentials = fetch_credentials()
-    credentials = refresh_if_necessary(db_credentials, System.get_env("SPOTIFY_USER"))
+  defp handle_track_link(message) do
+    {:ok, track_id} = Regex.run(
+        ~r'https://(open|play).spotify.com/track/([^\s>]*)',
+        message.text
+      ) |> Enum.fetch(2)
 
-    {:ok, track_id} = Regex.run(~r'https://(open|play).spotify.com/track/([^\s>]*)', message.text) |> Enum.fetch(2)
+    update_spotify(track_id)
+
+    add_note(message)
+  end
+
+  defp handle_album_link(message) do
+    {:ok, album_id} = Regex.run(
+        ~r'https://(open|play).spotify.com/album/([^\s>]*)',
+        message.text
+      ) |> Enum.fetch(2)
+
+    track_id = most_popular_on_album(album_id)
+
+    update_spotify(track_id)
+    add_note(message)
+  end
+
+  defp most_popular_on_album(album_id) do
+    credentials = fetch_and_refresh_credentials()
+
+    {:ok, album} = Spotify.Album.get_album(credentials, album_id)
+    song_count = album.tracks.total
+
+    # in fifty-song chunks due to Spotify API limitations
+    songs = Enum.flat_map(0..(div(song_count, 50)), fn(n) ->
+      {:ok, page} = Spotify.Album.get_album_tracks(
+                        credentials,
+                        album_id,
+                        %{limit: 50, offset: 50 * n}
+                    )
+      page.items
+      #|> Enum.map(fn(i) -> i.track end)
+    end)
+
+    song = Enum.max_by(songs, fn(s) -> s.popularity end)
+    song.id
+  end
+
+  defp add_note(message) do
+    options = %{channel: message.channel, timestamp: message.ts, token: System.get_env("SLACK_TOKEN")}
+    Slack.Web.Reactions.add('musical_note', options)
+  end
+
+  defp fetch_and_refresh_credentials() do
+    db_credentials = fetch_credentials()
+    refresh_if_necessary(db_credentials, System.get_env("SPOTIFY_USER"))
+  end
+
+  # TODO Extract a new module for this stuff
+  defp update_spotify(track_id) do
+    #db_credentials = fetch_credentials()
+    #credentials = refresh_if_necessary(db_credentials, System.get_env("SPOTIFY_USER"))
+    credentials = fetch_and_refresh_credentials()
+
     Spotify.Playlist.add_tracks(
                                 credentials,
                                 System.get_env("SPOTIFY_USER"),
