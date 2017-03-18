@@ -38,9 +38,10 @@ defmodule Botify.Mixfile do
      {:phoenix_live_reload, "~> 1.0", only: :dev},
      {:gettext, "~> 0.11"},
      {:cowboy, "~> 1.0"},
-     {:slack, "~> 0.9.2"},
+     {:slack, "~> 0.9.3"},
      {:httpoison, "~> 0.9.0"},
-     {:spotify_ex, "~> 2.0.4"}]
+     {:spotify_ex, "~> 2.0.4"},
+     {:mock, "~> 0.2.0", only: :test}]
   end
 
   # Aliases are shortcuts or tasks specific to the current project.
