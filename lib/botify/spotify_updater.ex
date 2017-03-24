@@ -37,6 +37,29 @@ defmodule Botify.SpotifyUpdater do
     song.id
   end
 
+  # TODO Refactor to reuse code
+  def most_popular_in_playlist(user_id, playlist_id) do
+    credentials = fetch_and_refresh_credentials()
+
+    {:ok, playlist} = Spotify.Playlist.get_playlist(credentials, user_id, playlist_id)
+    song_count = playlist.tracks["total"]
+
+    # in fifty-song chunks due to Spotify API limitations
+    songs = Enum.flat_map(0..(div(song_count, 50)), fn(n) ->
+      {:ok, page} = Spotify.Playlist.get_playlist_tracks(
+      credentials,
+      user_id,
+      playlist_id,
+      [limit: 50, offset: 50 * n]
+    )
+      page.items
+      |> Enum.map(fn(i) -> i.track end)
+    end)
+
+    song = Enum.max_by(songs, fn(s) -> s.popularity end)
+    song.id
+  end
+
   defp fetch_credentials do
     import Ecto.Query
 

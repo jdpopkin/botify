@@ -81,4 +81,30 @@ defmodule Botify.SlackRtmTest do
     end
   end
 
+  test "handles links to playlists" do
+    with_mocks([
+      {System,
+       [],
+       [get_env: fn
+         "SLACK_CHANNEL" -> "botify"
+         "SLACK_TOKEN" -> "123321"
+       end]},
+      {Botify.SpotifyUpdater,
+       [],
+       [add_track: fn(track) -> "#{track} added!" end,
+        most_popular_in_playlist: fn(_user_id, _playlist) -> "some_track_id" end]}
+    ]) do
+      Botify.SlackRtm.handle_event(
+        %{
+          type: "message",
+          text: "I like https://play.spotify.com/user/foo/playlist/asdf1234",
+          channel: "botify",
+          ts: "123321"
+        },
+        nil,
+        nil
+      )
+      assert called Botify.SpotifyUpdater.add_track("some_track_id")
+    end
+  end
 end

@@ -23,6 +23,8 @@ defmodule Botify.SlackRtm do
         handle_track_link(message)
       Regex.match?(~r'https://(open|play).spotify.com/album/', message.text) ->
         handle_album_link(message)
+      Regex.match?(~r'https://(open|play).spotify.com/user/[^/]*/playlist/', message.text) ->
+        handle_playlist_link(message)
       true -> nil
     end
   end
@@ -48,6 +50,20 @@ defmodule Botify.SlackRtm do
       ) |> Enum.fetch(2)
 
     track_id = Botify.SpotifyUpdater.most_popular_on_album(album_id)
+
+    update_spotify(track_id)
+    add_note(message)
+  end
+
+  defp handle_playlist_link(message) do
+    groups = Regex.run(
+      ~r'https://(open|play).spotify.com/user/([^/]*)/playlist/([^\s>]*)',
+      message.text
+    )
+    user_id = Enum.fetch!(groups, 2)
+    playlist_id = Enum.fetch!(groups, 3)
+
+    track_id = Botify.SpotifyUpdater.most_popular_in_playlist(user_id, playlist_id)
 
     update_spotify(track_id)
     add_note(message)
