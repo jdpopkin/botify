@@ -1,0 +1,45 @@
+{
+  "name": "Botify",
+  "description": "Add Spotify songs linked in a Slack channel to a playlist",
+  "repository": "https://github.com/jdpopkin/botify/",
+  "scripts": {
+	  "postdeploy": "mix ecto.migrate"
+  },
+  "env": {
+    "APP_URL": {
+      "description": "The URL to your Botify deployment in Heroku. The app uses this to ping itself and prevent spindown.",
+	  "required": "false"
+    },
+	"SLACK_CHANNEL": {
+		"description": "The ID of the Slack channel your bot should listen for Spotify links in."
+	},
+	"SLACK_TOKEN": {
+		"description": "The Slack API token used to authenticate your bot."
+	},
+	"SPOTIFY_ID": {
+		"description": "The client ID of the Spotify API user account associated with your Botify instance."
+	},
+	"SPOTIFY_PLAYLIST": {
+		"description": "The ID of the Spotify playlist to which your Botify instance will add songs."
+	},
+	"SPOTIFY_SECRET": {
+		"description": "The secret of the Spotify API user account associated with your Botify instance."
+	},
+	"SPOTIFY_USER": {
+		"description": "The name of the Spotify user who will grant API access to your Botify instance."
+	}
+  },
+  "addons": [
+    {
+      "plan": "heroku-postgresql",
+      "options": {
+        "version": "9.5"
+      }
+    }
+  ],
+  "buildpacks": [
+    {
+      "url": "https://github.com/HashNuke/heroku-buildpack-elixir.git"
+    }
+  ]
+}
